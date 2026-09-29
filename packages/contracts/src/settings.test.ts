@@ -796,6 +796,66 @@ describe("provider enabled defaults", () => {
   });
 });
 
+describe("GitHub Copilot settings", () => {
+  it("keeps existing installations and unconfigured instances opted out", () => {
+    expect(decodeServerSettings({}).providers.githubCopilot).toEqual({
+      enabled: false,
+      binaryPath: "copilot",
+      homePath: "",
+      customModels: [],
+    });
+    expect(
+      resolveProviderInstanceEnabled({
+        driver: ProviderDriverKind.make("githubCopilot"),
+        config: {},
+      }),
+    ).toBe(false);
+  });
+
+  it("normalizes legacy configuration and preserves opt-in patches through persistence", () => {
+    const patch = decodeServerSettingsPatch({
+      providers: {
+        githubCopilot: {
+          enabled: true,
+          binaryPath: "  /opt/bin/copilot  ",
+          homePath: "  ~/.copilot-t3  ",
+          customModels: [{ slug: "claude-sonnet-4.6", name: "Sonnet" }],
+        },
+      },
+    });
+    expect(patch.providers?.githubCopilot).toEqual({
+      enabled: true,
+      binaryPath: "/opt/bin/copilot",
+      homePath: "~/.copilot-t3",
+      customModels: [{ slug: "claude-sonnet-4.6", name: "Sonnet" }],
+    });
+    expect(encodeServerSettings(decodeServerSettings(patch)).providers?.githubCopilot).toEqual(
+      patch.providers?.githubCopilot,
+    );
+    expect(
+      decodeServerSettings({ providers: { githubCopilot: { binaryPath: "  " } } }).providers
+        .githubCopilot.binaryPath,
+    ).toBe("copilot");
+  });
+
+  it("retains dynamic instance configuration and honors disabling an enabled instance", () => {
+    const instanceId = ProviderInstanceId.make("githubCopilot_experiment");
+    const patch = decodeServerSettingsPatch({
+      providerInstances: {
+        [instanceId]: {
+          driver: "githubCopilot",
+          enabled: true,
+          config: { homePath: "~/.copilot-t3", customModels: [] },
+        },
+      },
+    });
+    const instance = decodeServerSettings(patch).providerInstances[instanceId]!;
+    expect(instance.config).toEqual({ homePath: "~/.copilot-t3", customModels: [] });
+    expect(resolveProviderInstanceEnabled(instance)).toBe(true);
+    expect(resolveProviderInstanceEnabled({ ...instance, enabled: false })).toBe(false);
+  });
+});
+
 describe("ServerSettings worktree defaults", () => {
   it("defaults the thread env mode to inherit and keeps stored values", () => {
     expect(decodeServerSettings({}).defaultThreadEnvMode).toBeNull();

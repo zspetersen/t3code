@@ -3,6 +3,7 @@ import {
   DEFAULT_UNIFIED_SETTINGS,
   ProviderDriverKind,
   ProviderInstanceId,
+  resolveProviderInstanceEnabled,
   type ProviderInstanceConfig,
 } from "@t3tools/contracts";
 import { getBackgroundActivityPresetSettings } from "@t3tools/shared/backgroundActivitySettings";
@@ -190,6 +191,23 @@ describe("formatDiagnosticsDescription", () => {
 });
 
 describe("buildProviderInstanceUpdatePatch", () => {
+  it("enables the experimental Copilot instance without leaving a disabled flag in its config", () => {
+    const instanceId = ProviderInstanceId.make("githubCopilot");
+    const driver = ProviderDriverKind.make("githubCopilot");
+    const patch = buildProviderInstanceUpdatePatch({
+      settings: DEFAULT_SERVER_SETTINGS,
+      instanceId,
+      driver,
+      isDefault: true,
+      instance: { driver, enabled: true, config: { binaryPath: "copilot" } },
+    });
+
+    expect(patch.providers?.githubCopilot.enabled).toBe(false);
+    const instance = patch.providerInstances?.[instanceId];
+    expect(instance).toBeDefined();
+    expect(resolveProviderInstanceEnabled(instance!)).toBe(true);
+  });
+
   it("promotes an edited default provider into providerInstances and resets the legacy provider", () => {
     const instanceId = ProviderInstanceId.make("codex");
     const nextInstance = {

@@ -14,7 +14,7 @@ import { useEnvironmentSettings, useUpdateEnvironmentSettings } from "../../hook
 import { cn } from "../../lib/utils";
 import { normalizeProviderAccentColor } from "../../providerInstances";
 import { Button } from "../ui/button";
-import { ACPRegistryIcon, Gemini, GithubCopilotIcon, PiAgentIcon, type Icon } from "../Icons";
+import { ACPRegistryIcon, Gemini, PiAgentIcon, type Icon } from "../Icons";
 import { Dialog } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
@@ -72,11 +72,6 @@ interface ComingSoonDriverOption {
 }
 
 const COMING_SOON_DRIVER_OPTIONS: readonly ComingSoonDriverOption[] = [
-  {
-    value: ProviderDriverKind.make("githubCopilot"),
-    label: "Github Copilot",
-    icon: GithubCopilotIcon,
-  },
   {
     value: ProviderDriverKind.make("gemini"),
     label: "Gemini",

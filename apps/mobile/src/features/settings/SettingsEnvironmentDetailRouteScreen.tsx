@@ -280,6 +280,11 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                             <Text className="min-w-0 flex-1 text-base font-t3-medium text-foreground">
                               {provider.displayName ?? provider.driver}
                             </Text>
+                            {provider.driver === "githubCopilot" ? (
+                              <Text className="text-xs font-t3-medium text-warning-foreground">
+                                Experimental
+                              </Text>
+                            ) : null}
                           </View>
                           <Text className="text-sm text-foreground-muted">
                             {provider.installed
